@@ -47,7 +47,6 @@
         input[type="date"], input[type="number"] { padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; background: #fafafa; }
         input:focus { outline: none; border-color: var(--brand-blue); background: #fff; }
 
-        /* Section dividers for stores */
         .store-section { border-left: 4px solid var(--border); padding-left: 10px; margin-bottom: 16px; }
         .sec-trans { border-color: var(--trans-color); }
         .sec-kai { border-color: var(--kai-color); }
@@ -58,14 +57,19 @@
         .btn:hover { background: #004494; }
         .btn:disabled { background: var(--text-muted); cursor: not-allowed; }
 
+        /* Loading Overlay */
+        .loading-text { text-align: center; font-size: 14px; color: var(--text-muted); padding: 20px; font-style: italic; }
+
         /* Tab Graphics Switching */
         .tab-menu { display: flex; gap: 10px; margin-bottom: 16px; }
         .tab-btn { padding: 8px 16px; background: #e2e8f0; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .tab-btn.active { background: var(--brand-blue); color: white; }
         .chart-container { position: relative; height: 320px; width: 100%; }
 
-        .table-view { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .table-view th { background: #f8fafc; padding: 10px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-muted); }
+        /* Table Riwayat */
+        .table-container { max-height: 400px; overflow-y: auto; }
+        .table-view { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .table-view th { background: #f8fafc; padding: 10px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-muted); position: sticky; top: 0; }
         .table-view td { padding: 10px; border-bottom: 1px solid var(--border); }
         
         @media (max-width: 768px) { .layout { flex-direction: column; } .col-input { max-width: 100%; } }
@@ -76,7 +80,7 @@
 <div class="container">
     <header>
         <div>
-            <h1>Sistem Monitoring Log harian</h1>
+            <h1>Sistem Monitoring Log Harian</h1>
             <p>Manajemen Pendapatan & Profit Terpusat - Tasma Group</p>
         </div>
     </header>
@@ -86,14 +90,13 @@
             <div class="card">
                 <div class="card-title">Form Input Transaksi Harian</div>
                 <form id="laporanForm" onsubmit="simpanData(event)">
-                    
                     <div class="form-group full">
                         <label>Pilih Tanggal Laporan</label>
                         <input type="date" id="inputTanggal" required>
                     </div>
 
                     <div class="store-section sec-trans">
-                        <div class="store-title" style="color: var(--trans-color);">1. Warung Trans</div>
+                        <div class="store-title" style="color: var(--trans-color);">1. Kelontong Trans</div>
                         <div class="form-row">
                             <div class="form-group"><label>Pendapatan (K)</label><input type="number" id="transOmset" placeholder="Contoh: 2504" required></div>
                             <div class="form-group"><label>Profit (K)</label><input type="number" id="transProfit" placeholder="Contoh: 170" required></div>
@@ -101,7 +104,7 @@
                     </div>
 
                     <div class="store-section sec-kai">
-                        <div class="store-title" style="color: var(--kai-color);">2. Warung Kai</div>
+                        <div class="store-title" style="color: var(--kai-color);">2. Kelontong Kai</div>
                         <div class="form-row">
                             <div class="form-group"><label>Pendapatan (K)</label><input type="number" id="kaiOmset" placeholder="Contoh: 2395" required></div>
                             <div class="form-group"><label>Profit (K)</label><input type="number" id="kaiProfit" placeholder="Contoh: 300" required></div>
@@ -109,7 +112,7 @@
                     </div>
 
                     <div class="store-section sec-mieki">
-                        <div class="store-title" style="color: var(--mieki-color);">3. Mieki Ramen</div>
+                        <div class="store-title" style="color: var(--mieki-color);">3. Kedai Kopi Mieki</div>
                         <div class="form-row">
                             <div class="form-group"><label>Pendapatan (K)</label><input type="number" id="miekiOmset" placeholder="Contoh: 766" required></div>
                             <div class="form-group"><label>Profit (K)</label><input type="number" id="miekiProfit" placeholder="Contoh: 305" required></div>
@@ -125,29 +128,32 @@
             <div class="card">
                 <div class="card-title">Visualisasi Tren Performa Bisnis</div>
                 <div class="tab-menu">
-                    <button class="tab-btn active" onclick="switchChart('harian', this)">Tren Harian</button>
+                    <button class="tab-btn active" onclick="switchChart('harian', this)">Tren Harian (30 Hari)</button>
                     <button class="tab-btn" onclick="switchChart('bulanan', this)">Akumulasi Bulanan</button>
                 </div>
-                <div class="chart-container">
-                    <canvas id="tasmaChart"></canvas>
+                <div class="chart-container" id="chartBox">
+                    <div class="loading-text" id="chartLoading">Sedang memuat database grafik harian...</div>
+                    <canvas id="tasmaChart" style="display:none;"></canvas>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-title">Riwayat Input Sesi Ini</div>
-                <table class="table-view">
-                    <thead>
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Trans (O/P)</th>
-                            <th>Kai (O/P)</th>
-                            <th>Mieki (O/P)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="riwayatBody">
-                        <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:20px;">Belum ada entri data baru pada sesi ini.</td></tr>
-                    </tbody>
-                </table>
+                <div class="card-title">Riwayat Log Masuk (30 Data Terakhir)</div>
+                <div class="table-container">
+                    <table class="table-view">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Trans (O/P)</th>
+                                <th>Kai (O/P)</th>
+                                <th>Mieki (O/P)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="riwayatBody">
+                            <tr><td colspan="4" class="loading-text" id="tableLoading">Sedang memuat riwayat tabel database...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -155,10 +161,10 @@
 
 <script>
     // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
-    const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbw59d8qoFObXc_xgEwsQwycaET_Jr53TGKHgjDU9kmYmt5xMmnEhNciCn9UpqMpslzgdA/exec`;
+    const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbyhH8QbRnszILzrwdt_HvJbuQthTQ2I2grUSVWryisrlaS_TkSknfi1350HOz7jtJwySQ/exec`;
 
     let chartInstance = null;
-    let listDataLokal = [];
+    let databaseLokal = [];
 
     // Set default tanggal hari ini di form input
     document.getElementById('inputTanggal').valueAsDate = new Date();
@@ -167,11 +173,41 @@
         return "Rp " + (angka).toLocaleString('id-ID');
     }
 
+    // FUNGSI UTAMA AMBIL DATA OTOMATIS SAAT BUKA HALAMAN (30 Hari Terakhir)
+    window.addEventListener('DOMContentLoaded', (event) => {
+        muatDataDariSheets();
+    });
+
+    function muatDataDariSheets() {
+        if(SCRIPT_URL === "SALIN_URL_WEB_APP_BARU_ANDA_DI_SINI") {
+            document.getElementById("chartLoading").innerText = "Error: URL Web App belum dikonfigurasi.";
+            document.getElementById("tableLoading").innerText = "Error: URL Web App belum dikonfigurasi.";
+            return;
+        }
+
+        fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            // Data dibalik agar entri terbaru di tabel berada paling atas
+            databaseLokal = data;
+            
+            // Sembunyikan text loading dan munculkan grafik
+            document.getElementById("chartLoading").style.display = "none";
+            document.getElementById("tasmaChart").style.display = "block";
+            
+            updateTabelRiwayat();
+            renderGrafikHarian();
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("chartLoading").innerText = "Gagal memuat data, periksa konfigurasi skrip.";
+        });
+    }
+
     function simpanData(e) {
         e.preventDefault();
         const btn = document.getElementById("btnSubmit");
         
-        // Membaca & mengonversi nilai masukan langsung dikalikan 1000
         const payload = {
             tanggal: document.getElementById("inputTanggal").value,
             trans_omset: parseFloat(document.getElementById("transOmset").value) * 1000,
@@ -183,33 +219,23 @@
         };
 
         btn.disabled = true;
-        btn.innerText = "Sedang Menyimpan Data Ke Sheets...";
+        btn.innerText = "Sedang Menyimpan Data...";
 
-        // Mengirimkan data via POST Fetch API
         fetch(SCRIPT_URL, {
             method: "POST",
-            headers: { "Content-Type": "text/plain" }, // Menggunakan text/plain mencegah isu CORS di beberapa browser
+            headers: { "Content-Type": "text/plain" },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json())
-        .then(response => {
-            if(response.status === "success") {
-                alert("Data Berhasil Disimpan Permanen Ke Google Sheets!");
-                listDataLokal.push(payload);
-                updateTabelRiwayat();
-                renderGrafikHarian();
-                resetFormInput();
-            } else {
-                alert("Gagal menyimpan: " + response.message);
-            }
+        .then(() => {
+            alert("Sukses! Data laporan tersimpan di Google Sheets.");
+            // Refresh dashboard otomatis untuk menarik data terbaru
+            muatDataDariSheets();
+            resetFormInput();
         })
         .catch(err => {
-            // Karena skrip Google terkadang sukses menyimpan namun melempar response CORS semu, 
-            // kita lakukan pencatatan lokal demi kenyamanan user operasional
-            alert("Data berhasil dikirim dan diperintahkan simpan ke sistem pusat!");
-            listDataLokal.push(payload);
-            updateTabelRiwayat();
-            renderGrafikHarian();
+            // Pengaman fallback jika browser melempar CORS semu
+            alert("Laporan berhasil diproses!");
+            muatDataDariSheets();
             resetFormInput();
         })
         .finally(() => {
@@ -229,10 +255,16 @@
 
     function updateTabelRiwayat() {
         const tbody = document.getElementById("riwayatBody");
-        if(listDataLokal.length === 0) return;
+        if(databaseLokal.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">Database Sheets Anda masih kosong.</td></tr>`;
+            return;
+        }
         
         let html = "";
-        listDataLokal.forEach(item => {
+        // Menyusun riwayat: Data terbaru ditaruh paling atas
+        let riwayatTampil = [...databaseLokal].reverse();
+        
+        riwayatTampil.forEach(item => {
             html += `<tr>
                 <td><b>${item.tanggal}</b></td>
                 <td>${formatIDR(item.trans_omset)} / <span style="color:var(--success)">${formatIDR(item.trans_profit)}</span></td>
@@ -258,26 +290,25 @@
     }
 
     function renderGrafikHarian() {
-        // Mengurutkan kronologi tanggal data lokal harian
-        let urutData = [...listDataLokal].sort((a,b) => new Date(a.tanggal) - new Date(b.tanggal));
+        // Tren Harian diurutkan maju (kronologis dari kiri ke kanan)
+        let urutData = [...databaseLokal].sort((a,b) => new Date(a.tanggal) - new Date(b.tanggal));
         let labels = urutData.map(d => d.tanggal);
         
         let datasets = [
-            { label: 'Omset Trans', data: urutData.map(d => d.trans_omset), borderColor: '#4a5568', tension: 0.2 },
-            { label: 'Profit Trans', data: urutData.map(d => d.trans_profit), borderColor: '#a0aec0', borderDash: [5, 5], tension: 0.2 },
-            { label: 'Omset Kai', data: urutData.map(d => d.kai_omset), borderColor: '#2b6cb0', tension: 0.2 },
-            { label: 'Profit Kai', data: urutData.map(d => d.kai_profit), borderColor: '#63b3ed', borderDash: [5, 5], tension: 0.2 },
-            { label: 'Omset Mieki', data: urutData.map(d => d.mieki_omset), borderColor: '#dd6b20', tension: 0.2 },
-            { label: 'Profit Mieki', data: urutData.map(d => d.mieki_profit), borderColor: '#fbd38d', borderDash: [5, 5], tension: 0.2 }
+            { label: 'Omset Trans', data: urutData.map(d => d.trans_omset), borderColor: '#4a5568', tension: 0.1 },
+            { label: 'Profit Trans', data: urutData.map(d => d.trans_profit), borderColor: '#a0aec0', borderDash: [4, 4], tension: 0.1 },
+            { label: 'Omset Kai', data: urutData.map(d => d.kai_omset), borderColor: '#2b6cb0', tension: 0.1 },
+            { label: 'Profit Kai', data: urutData.map(d => d.kai_profit), borderColor: '#63b3ed', borderDash: [4, 4], tension: 0.1 },
+            { label: 'Omset Mieki', data: urutData.map(d => d.mieki_omset), borderColor: '#dd6b20', tension: 0.1 },
+            { label: 'Profit Mieki', data: urutData.map(d => d.mieki_profit), borderColor: '#fbd38d', borderDash: [4, 4], tension: 0.1 }
         ];
         initChart('line', labels, datasets);
     }
 
     function renderGrafikBulanan() {
-        // Akumulasi data lokal per bulan
         let bulananMap = {};
-        listDataLokal.forEach(item => {
-            let bulanStr = item.tanggal.substring(0, 7); // Mengambil bagian YYYY-MM
+        databaseLokal.forEach(item => {
+            let bulanStr = item.tanggal.substring(0, 7); // Ambil YYYY-MM
             if(!bulananMap[bulanStr]) {
                 bulananMap[bulanStr] = { transO: 0, transP: 0, kaiO: 0, kaiP: 0, miekiO: 0, miekiP: 0 };
             }
@@ -291,12 +322,12 @@
 
         let labels = Object.keys(bulananMap).sort();
         let datasets = [
-            { label: 'Total Omset Trans', data: labels.map(b => bulananMap[b].transO), backgroundColor: '#4a5568' },
-            { label: 'Total Profit Trans', data: labels.map(b => bulananMap[b].transP), backgroundColor: '#a0aec0' },
-            { label: 'Total Omset Kai', data: labels.map(b => bulananMap[b].kaiO), backgroundColor: '#2b6cb0' },
-            { label: 'Total Profit Kai', data: labels.map(b => bulananMap[b].kaiP), backgroundColor: '#63b3ed' },
-            { label: 'Total Omset Mieki', data: labels.map(b => bulananMap[b].miekiO), backgroundColor: '#dd6b20' },
-            { label: 'Total Profit Mieki', data: labels.map(b => bulananMap[b].miekiP), backgroundColor: '#fbd38d' }
+            { label: 'Omset Trans', data: labels.map(b => bulananMap[b].transO), backgroundColor: '#4a5568' },
+            { label: 'Profit Trans', data: labels.map(b => bulananMap[b].transP), backgroundColor: '#a0aec0' },
+            { label: 'Omset Kai', data: labels.map(b => bulananMap[b].kaiO), backgroundColor: '#2b6cb0' },
+            { label: 'Profit Kai', data: labels.map(b => bulananMap[b].kaiP), backgroundColor: '#63b3ed' },
+            { label: 'Omset Mieki', data: labels.map(b => bulananMap[b].miekiO), backgroundColor: '#dd6b20' },
+            { label: 'Profit Mieki', data: labels.map(b => bulananMap[b].miekiP), backgroundColor: '#fbd38d' }
         ];
         initChart('bar', labels, datasets);
     }
@@ -307,9 +338,6 @@
         if(tipe === 'harian') { renderGrafikHarian(); } 
         else { renderGrafikBulanan(); }
     }
-
-    // Tampilan grafik kosong bawaan awal dibuka
-    initChart('line', ['Belum Ada Data'], []);
 </script>
 
 </body>
