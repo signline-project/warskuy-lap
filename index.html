@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tasma x Mieki - Dashboard Internal</title>
+    <title>Tasma Group - Dashboard Internal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -20,21 +20,27 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background-color: var(--bg-body); color: var(--text-main); padding: 20px; }
+        body { background-color: var(--bg-body); color: var(--text-main); padding: 16px; }
         .container { max-width: 1300px; margin: 0 auto; }
 
         header {
             background: linear-gradient(135deg, var(--brand-blue) 0%, #003670 100%);
             color: white; padding: 20px; border-radius: 12px; margin-bottom: 24px;
-            display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
         header h1 { font-size: 20px; font-weight: 600; }
         header p { font-size: 12px; color: #cbd5e0; margin-top: 4px; }
 
         .layout { display: flex; gap: 24px; flex-wrap: wrap; }
-        .col-input { flex: 1; min-width: 360px; max-width: 450px; }
-        .col-display { flex: 2; min-width: 500px; }
+        .col-input { flex: 1; min-width: 100%; max-width: 100%; }
+        .col-display { flex: 1; min-width: 100%; }
+
+        /* Media query desktop: Jika layar lebar, bagi jadi 2 kolom lagi */
+        @media (min-width: 992px) {
+            body { padding: 20px; }
+            .col-input { flex: 4; min-width: 380px; max-width: 450px; }
+            .col-display { flex: 6; min-width: 500px; }
+        }
 
         .card { background: var(--surface); border-radius: 12px; padding: 20px; border: 1px solid var(--border); margin-bottom: 24px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--bg-body); color: var(--brand-blue); }
@@ -44,40 +50,40 @@
         .form-group { display: flex; flex-direction: column; margin-bottom: 14px; }
         .form-group.full { grid-column: span 2; }
         label { font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
-        input[type="date"], input[type="number"] { padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; background: #fafafa; }
+        input[type="date"], input[type="number"] { padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; background: #fafafa; width: 100%; -webkit-appearance: none; }
         input:focus { outline: none; border-color: var(--brand-blue); background: #fff; }
 
-        .store-section { border-left: 4px solid var(--border); padding-left: 10px; margin-bottom: 16px; }
+        /* KOREKSI MOBILE: Jika layar HP, buat input baris Pendapatan & Profit turun ke bawah */
+        @media (max-width: 480px) {
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .form-group.full { grid-column: span 1; }
+        }
+
+        .store-section { border-left: 4px solid var(--border); padding-left: 12px; margin-bottom: 16px; }
         .sec-trans { border-color: var(--trans-color); }
         .sec-kai { border-color: var(--kai-color); }
         .sec-mieki { border-color: var(--mieki-color); }
-        .store-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+        .store-title { font-size: 14px; font-weight: bold; margin-bottom: 8px; }
 
-        .btn { width: 100%; padding: 12px; background: var(--brand-blue); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn { width: 100%; padding: 14px; background: var(--brand-blue); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
         .btn:hover { background: #004494; }
         .btn:disabled { background: var(--text-muted); cursor: not-allowed; }
 
-        /* Loading Overlay */
         .loading-text { text-align: center; font-size: 14px; color: var(--text-muted); padding: 20px; font-style: italic; }
 
-        /* Tab Graphics Switching */
         .tab-menu { display: flex; gap: 10px; margin-bottom: 16px; }
         .tab-btn { padding: 8px 16px; background: #e2e8f0; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .tab-btn.active { background: var(--brand-blue); color: white; }
         .chart-container { position: relative; height: 320px; width: 100%; margin-bottom: 16px; }
 
-        /* Summary Box Bulanan */
         .monthly-summary-box { display: none; margin-top: 16px; padding-top: 16px; border-top: 2px dashed var(--border); }
         .summary-title { font-size: 14px; font-weight: bold; color: var(--brand-blue); margin-bottom: 10px; }
 
-        /* Tables */
-        .table-container { max-height: 400px; overflow-y: auto; }
-        .table-view { width: 100%; border-collapse: collapse; font-size: 12px; }
+        /* Tables & Scroll Mobile */
+        .table-container { max-height: 400px; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .table-view { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 450px; }
         .table-view th { background: #f8fafc; padding: 10px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-muted); position: sticky; top: 0; z-index: 10; }
-        .table-view td { padding: 10px; border-bottom: 1px solid var(--border); }
-        .table-view tr.total-row { background: #edf2f7; font-weight: bold; }
-        
-        @media (max-width: 768px) { .layout { flex-direction: column; } .col-input { max-width: 100%; } }
+        .table-view td { padding: 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -86,7 +92,7 @@
     <header>
         <div>
             <h1>Sistem Monitoring Log Harian</h1>
-            <p>Manajemen Pendapatan & Profit Terpusat - Tasma x Mieki</p>
+            <p>Manajemen Pendapatan & Profit Terpusat - Tasma x MieKi</p>
         </div>
     </header>
 
@@ -117,12 +123,12 @@
                     </div>
 
                     <div class="store-section sec-mieki">
-                        <div class="store-title" style="color: var(--mieki-color);">3. MieKi Ramen</div>
-                        <div class="form-row">
-                            <div class="form-group"><label>Pendapatan (K)</label><input type="number" id="miekiOmset" placeholder="Contoh: 766" required></div>
-                            <div class="form-group"><label>Profit (K)</label><input type="number" id="miekiProfit" placeholder="Contoh: 305" required></div>
-                        </div>
-                    </div>
+    <div class="store-title" style="color: var(--mieki-color);">3. MieKi Ramen</div>
+    <div class="form-row">
+        <div class="form-group"><label>Pendapatan (K)</label><input type="number" id="miekiOmset" placeholder="Contoh: 766" required></div>
+        <div class="form-group"><label>Profit (K)</label><input type="number" id="miekiProfit" placeholder="Contoh: 305" required></div>
+    </div>
+</div>
 
                     <button type="submit" class="btn" id="btnSubmit">Kirim & Simpan Laporan</button>
                 </form>
@@ -143,18 +149,19 @@
 
                 <div class="monthly-summary-box" id="monthlySummarySection">
                     <div class="summary-title">Tabel Rincian Angka Bulanan (Rupiah asli)</div>
-                    <table class="table-view" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                        <thead>
-                            <tr>
-                                <th>Bulan</th>
-                                <th>Trans (O/P)</th>
-                                <th>Kai (O/P)</th>
-                                <th>Mieki (O/P)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="monthlySummaryBody">
-                            </tbody>
-                    </table>
+                    <div class="table-container">
+                        <table class="table-view">
+                            <thead>
+                                <tr>
+                                    <th>Bulan</th>
+                                    <th>Trans (O/P)</th>
+                                    <th>Kai (O/P)</th>
+                                    <th>Mieki (O/P)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthlySummaryBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -182,7 +189,7 @@
 
 <script>
     // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
-    const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbxkzsUnGruOxr88zaBQ6v18Guh4-r7iuWC48BTboDf6b6TYNpYwlubHez0Kdqe8l68oaw/exec`;
+    const SCRIPT_URL = "SALIN_URL_WEB_APP_BARU_ANDA_DI_SINI";
 
     let chartInstance = null;
     let databaseLokal = [];
@@ -320,7 +327,7 @@
     function renderGrafikBulanan() {
         let bulananMap = {};
         databaseLokal.forEach(item => {
-            let bulanStr = item.tanggal.substring(0, 7); // Ambil YYYY-MM
+            let bulanStr = item.tanggal.substring(0, 7); 
             if(!bulananMap[bulanStr]) {
                 bulananMap[bulanStr] = { transO: 0, transP: 0, kaiO: 0, kaiP: 0, miekiO: 0, miekiP: 0 };
             }
@@ -334,7 +341,6 @@
 
         let labels = Object.keys(bulananMap).sort();
         
-        // 1. Gambar grafik batang bulanan
         let datasets = [
             { label: 'Omset Trans', data: labels.map(b => bulananMap[b].transO), backgroundColor: '#4a5568' },
             { label: 'Profit Trans', data: labels.map(b => bulananMap[b].transP), backgroundColor: '#a0aec0' },
@@ -345,11 +351,8 @@
         ];
         initChart('bar', labels, datasets);
 
-        // 2. Buat tabel rangkuman angka akumulasi bulanan di bawah grafik
         const tbodyBulanan = document.getElementById("monthlySummaryBody");
         let htmlBulanan = "";
-        
-        // Urutkan bulan terbaru paling atas
         let bulanSorted = [...labels].reverse();
         
         bulanSorted.forEach(b => {
@@ -370,11 +373,11 @@
         const summaryBox = document.getElementById("monthlySummarySection");
         
         if(tipe === 'harian') { 
-            summaryBox.style.display = "none"; // Sembunyikan tabel akumulasi jika tab harian aktif
+            summaryBox.style.display = "none";
             renderGrafikHarian(); 
         } 
         else { 
-            summaryBox.style.display = "block"; // Munculkan tabel akumulasi di bawah grafik bulanan
+            summaryBox.style.display = "block";
             renderGrafikBulanan(); 
         }
     }
