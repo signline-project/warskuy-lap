@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Laporan Harian - Tasma Group</title>
+    <style>
+        :root {
+            --bg-primary: #f4f6f9;
+            --surface: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --brand-blue: #0056B3;
+            --brand-yellow: #FFD700;
+            --accent-trans: #4a5568;
+            --accent-kai: #2b6cb0;
+            --accent-mieki: #dd6b20;
+            --border-color: #e2e8f0;
+            --success: #38a169;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Branding */
+        header {
+            background: linear-gradient(135deg, var(--brand-blue) 0%, #003d82 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        header p {
+            font-size: 13px;
+            color: #cbd5e0;
+            margin-top: 4px;
+        }
+
+        .badge-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .shop-badge {
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid rgba(255,255,255,0.25);
+        }
+
+        /* Layout Columns */
+        .main-layout {
+            display: flex;
+            gap: 24px;
+        }
+
+        .col-left {
+            flex: 4;
+            min-width: 320px;
+        }
+
+        .col-right {
+            flex: 6;
+        }
+
+        /* Card Elements */
+        .card {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--bg-primary);
+            color: var(--brand-blue);
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            resize: vertical;
+            background-color: #fafafa;
+            color: #2d3748;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--brand-blue);
+            background-color: #fff;
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--brand-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #004494;
+        }
+
+        .btn:disabled {
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        /* Stats Blocks */
+        .stats-grid {
+            display: flex;
+            gap: 16px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        /* Data Table Styles */
+        .data-table-container {
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .data-table tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .tag-shop {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .tag-trans { background-color: var(--accent-trans); }
+        .tag-kai { background-color: var(--accent-kai); }
+        .tag-mieki { background-color: var(--accent-mieki); }
+
+        .text-right { text-align: right; }
+        .fw-bold { font-weight: bold; }
+        
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 0;
+            font-style: italic;
+        }
+
+        /* Responsive Layout */
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Sistem Manajemen Laporan Harian</h1>
+            <p>Tasma Grocery • Tasma Drink • Toko Kai</p>
+        </div>
+        <div class="badge-container">
+            <span class="shop-badge" style="background-color: var(--accent-trans);">Trans</span>
+            <span class="shop-badge" style="background-color: var(--accent-kai);">Kai</span>
+            <span class="shop-badge" style="background-color: var(--accent-mieki);">Mieki</span>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <div class="col-left">
+            <div class="card">
+                <div class="card-title">Input Teks Chat WhatsApp / Telegram</div>
+                <div class="form-group">
+                    <label for="rawText">Tempel Teks Laporan Di Sini:</label>
+                    <textarea id="rawText" placeholder="Contoh format:&#10;17 05 26&#10;Trans 2504/170&#10;Kai 2395/300&#10;Mieki 766/305"></textarea>
+                </div>
+                <button class="btn" id="btnProses" onclick="prosesTeksLaporan()">Proses & Kirim ke Sheets</button>
+                <div class="hint">
+                    <strong>Format deteksi:</strong> Baris pertama tanggal (DD MM YY). Baris berikutnya berisi nama toko lalu spasi diikuti nominal (Pendapatan/Profit).
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Ringkasan Total Sesi Ini</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <label>Total Pendapatan</label>
+                        <div class="stat-val" id="grand-omset" style="color: var(--brand-blue);">Rp 0</div>
+                    </div>
+                    <div class="stat-card">
+                        <label>Total Profit</label>
+                        <div class="stat-val" id="grand-profit" style="color: var(--success);">Rp 0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-right">
+            <div class="card">
+                <div class="card-title">Monitoring Data Terproses</div>
+                
+                <div class="data-table-container">
+                    <table class="data-table" id="tablePreview">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Unit Usaha</th>
+                                <th class="text-right">Pendapatan (Rp)</th>
+                                <th class="text-right">Profit (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="4" class="empty-state">Belum ada data yang diproses. Silakan input teks di sebelah kiri.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
+    const WEB_APP_URL = "SALIN_URL_WEB_APP_GOOGLE_ANDA_DI_SINI";
+
+    let databaseLokal = [];
+
+    function formatRupiah(angka) {
+        return "Rp " + angka.toLocaleString('id-ID');
+    }
+
+    function prosesTeksLaporan() {
+        const textInput = document.getElementById("rawText").value.trim();
+        const btn = document.getElementById("btnProses");
+        
+        if (!textInput) {
+            alert("Silakan tempel teks laporan terlebih dahulu!");
+            return;
+        }
+
+        const lines = textInput.split("\n");
+        let currentTanggal = "";
+        let dataSesiIni = [];
+
+        // Regex untuk mencocokkan tanggal DD MM YY atau DD-MM-YY
+        const datePattern = /^(\d{1,2})\s+(\d{1,2})\s+(\d{2})/;
+
+        lines.forEach(lineStr => {
+            const line = lineStr.trim();
+            if (!line) return;
+
+            // 1. Deteksi Baris Tanggal
+            if (datePattern.test(line)) {
+                const matchDate = line.match(datePattern);
+                // Simpan format sementara DD-MM-20YY
+                currentTanggal = `${matchDate[1]}-${matchDate[2]}-20${matchDate[3]}`;
+                return;
+            }
+
+            // 2. Deteksi Baris Data Toko (Mengandung angka '/')
+            if (line.includes("/")) {
+                const parts = line.split(/\s+/);
+                if (parts.length >= 2) {
+                    const namaTokoRaw = parts[0];
+                    const angkaPart = parts[1].split("/");
+                    
+                    if (angkaPart.length === 2) {
+                        const pendapatanK = parseFloat(angkaPart[0]);
+                        const profitK = parseFloat(angkaPart[1]);
+
+                        if (!isNaN(pendapatanK) && !isNaN(profitK)) {
+                            const omsetReal = pendapatanK * 1000;
+                            const profitReal = profitK * 1000;
+
+                            const itemBaru = {
+                                tanggal: currentTanggal || "Tanpa Tanggal",
+                                toko: namaTokoRaw,
+                                omset: omsetReal,
+                                profit: profitReal
+                            };
+                            
+                            dataSesiIni.push(itemBaru);
+                            databaseLokal.unshift(itemBaru);
+                        }
+                    }
+                }
+            }
+        });
+
+        if (dataSesiIni.length > 0) {
+            renderTable();
+            updateSummary();
+            
+            // Nonaktifkan tombol saat loading pengiriman data
+            btn.disabled = true;
+            btn.innerText = "Mengirim data ke Google Sheets...";
+
+            // Kirim data ke Google Sheets API
+            kirimDataKeSheets(dataSesiIni, btn);
+            document.getElementById("rawText").value = ""; 
+        } else {
+            alert("Format teks tidak dikenali. Pastikan baris pertama adalah tanggal dan baris berikutnya sesuai format.");
+        }
+    }
+
+    function kirimDataKeSheets(dataKirim, buttonElement) {
+        if(WEB_APP_URL === `https://script.google.com/macros/s/AKfycbwBe0v66WI4dpmqtqnUe0PvVj5zgCQPbzue_ezgaIVafQV59TPfbwUI3qKlRmJHHES3RQ/exec`) {
+            alert("Perhatian: Anda belum mengganti WEB_APP_URL di dalam kode script dengan URL Google Apps Script Anda!");
+            buttonElement.disabled = false;
+            buttonElement.innerText = "Proses & Kirim ke Sheets";
+            return;
+        }
+
+        fetch(WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors", // Digunakan agar tidak terhalang kebijakan CORS di GitHub Pages
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ laporan: dataKirim })
+        })
+        .then(() => {
+            alert("Sukses! Data berhasil diproses dan disimpan ke Google Sheets.");
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Gagal mengirim data ke Sheets. Coba periksa kembali koneksi internet Anda.");
+        })
+        .finally(() => {
+            // Kembalikan status tombol
+            buttonElement.disabled = false;
+            buttonElement.innerText = "Proses & Kirim ke Sheets";
+        });
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById("tableBody");
+        
+        if (databaseLokal.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-state">Belum ada data yang diproses. Silakan input teks di sebelah kiri.</td></tr>`;
+            return;
+        }
+
+        let html = "";
+        databaseLokal.forEach(item => {
+            let tagClass = "tag-trans";
+            const tokoLower = item.toko.toLowerCase();
+            if (tokoLower.includes("kai")) tagClass = "tag-kai";
+            if (tokoLower.includes("mieki")) tagClass = "tag-mieki";
+
+            html += `
+                <tr>
+                    <td>${item.tanggal}</td>
+                    <td><span class="tag-shop ${tagClass}">${item.toko}</span></td>
+                    <td class="text-right fw-bold">${formatRupiah(item.omset)}</td>
+                    <td class="text-right fw-bold" style="color: var(--success);">${formatRupiah(item.profit)}</td>
+                </tr>
+            `;
+        });
+        
+        tbody.innerHTML = html;
+    }
+
+    function updateSummary() {
+        let totalOmset = 0;
+        let totalProfit = 0;
+
+        databaseLokal.forEach(item => {
+            totalOmset += item.omset;
+            totalProfit += item.profit;
+        });
+
+        document.getElementById("grand-omset").innerText = formatRupiah(totalOmset);
+        document.getElementById("grand-profit").innerText = formatRupiah(totalProfit);
+    }
+</script>
+
+</body>
+</html>
