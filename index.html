@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tasma x MieKi - Dashboard Internal</title>
+    <title>Tasma x Mieki - Dashboard Internal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -64,13 +64,18 @@
         .tab-menu { display: flex; gap: 10px; margin-bottom: 16px; }
         .tab-btn { padding: 8px 16px; background: #e2e8f0; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .tab-btn.active { background: var(--brand-blue); color: white; }
-        .chart-container { position: relative; height: 320px; width: 100%; }
+        .chart-container { position: relative; height: 320px; width: 100%; margin-bottom: 16px; }
 
-        /* Table Riwayat */
+        /* Summary Box Bulanan */
+        .monthly-summary-box { display: none; margin-top: 16px; padding-top: 16px; border-top: 2px dashed var(--border); }
+        .summary-title { font-size: 14px; font-weight: bold; color: var(--brand-blue); margin-bottom: 10px; }
+
+        /* Tables */
         .table-container { max-height: 400px; overflow-y: auto; }
         .table-view { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .table-view th { background: #f8fafc; padding: 10px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-muted); position: sticky; top: 0; }
+        .table-view th { background: #f8fafc; padding: 10px; text-align: left; border-bottom: 2px solid var(--border); color: var(--text-muted); position: sticky; top: 0; z-index: 10; }
         .table-view td { padding: 10px; border-bottom: 1px solid var(--border); }
+        .table-view tr.total-row { background: #edf2f7; font-weight: bold; }
         
         @media (max-width: 768px) { .layout { flex-direction: column; } .col-input { max-width: 100%; } }
     </style>
@@ -81,7 +86,7 @@
     <header>
         <div>
             <h1>Sistem Monitoring Log Harian</h1>
-            <p>Manajemen Pendapatan & Profit Terpusat - Tasma x MieKi</p>
+            <p>Manajemen Pendapatan & Profit Terpusat - Tasma x Mieki</p>
         </div>
     </header>
 
@@ -135,6 +140,22 @@
                     <div class="loading-text" id="chartLoading">Sedang memuat database grafik harian...</div>
                     <canvas id="tasmaChart" style="display:none;"></canvas>
                 </div>
+
+                <div class="monthly-summary-box" id="monthlySummarySection">
+                    <div class="summary-title">Tabel Rincian Angka Bulanan (Rupiah asli)</div>
+                    <table class="table-view" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <thead>
+                            <tr>
+                                <th>Bulan</th>
+                                <th>Trans (O/P)</th>
+                                <th>Kai (O/P)</th>
+                                <th>Mieki (O/P)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monthlySummaryBody">
+                            </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="card">
@@ -166,14 +187,12 @@
     let chartInstance = null;
     let databaseLokal = [];
 
-    // Set default tanggal hari ini di form input
     document.getElementById('inputTanggal').valueAsDate = new Date();
 
     function formatIDR(angka) {
         return "Rp " + (angka).toLocaleString('id-ID');
     }
 
-    // FUNGSI UTAMA AMBIL DATA OTOMATIS SAAT BUKA HALAMAN (30 Hari Terakhir)
     window.addEventListener('DOMContentLoaded', (event) => {
         muatDataDariSheets();
     });
@@ -188,10 +207,7 @@
         fetch(SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
-            // Data dibalik agar entri terbaru di tabel berada paling atas
             databaseLokal = data;
-            
-            // Sembunyikan text loading dan munculkan grafik
             document.getElementById("chartLoading").style.display = "none";
             document.getElementById("tasmaChart").style.display = "block";
             
@@ -228,12 +244,10 @@
         })
         .then(() => {
             alert("Sukses! Data laporan tersimpan di Google Sheets.");
-            // Refresh dashboard otomatis untuk menarik data terbaru
             muatDataDariSheets();
             resetFormInput();
         })
         .catch(err => {
-            // Pengaman fallback jika browser melempar CORS semu
             alert("Laporan berhasil diproses!");
             muatDataDariSheets();
             resetFormInput();
@@ -261,7 +275,6 @@
         }
         
         let html = "";
-        // Menyusun riwayat: Data terbaru ditaruh paling atas
         let riwayatTampil = [...databaseLokal].reverse();
         
         riwayatTampil.forEach(item => {
@@ -290,7 +303,6 @@
     }
 
     function renderGrafikHarian() {
-        // Tren Harian diurutkan maju (kronologis dari kiri ke kanan)
         let urutData = [...databaseLokal].sort((a,b) => new Date(a.tanggal) - new Date(b.tanggal));
         let labels = urutData.map(d => d.tanggal);
         
@@ -321,6 +333,8 @@
         });
 
         let labels = Object.keys(bulananMap).sort();
+        
+        // 1. Gambar grafik batang bulanan
         let datasets = [
             { label: 'Omset Trans', data: labels.map(b => bulananMap[b].transO), backgroundColor: '#4a5568' },
             { label: 'Profit Trans', data: labels.map(b => bulananMap[b].transP), backgroundColor: '#a0aec0' },
@@ -330,13 +344,39 @@
             { label: 'Profit Mieki', data: labels.map(b => bulananMap[b].miekiP), backgroundColor: '#fbd38d' }
         ];
         initChart('bar', labels, datasets);
+
+        // 2. Buat tabel rangkuman angka akumulasi bulanan di bawah grafik
+        const tbodyBulanan = document.getElementById("monthlySummaryBody");
+        let htmlBulanan = "";
+        
+        // Urutkan bulan terbaru paling atas
+        let bulanSorted = [...labels].reverse();
+        
+        bulanSorted.forEach(b => {
+            htmlBulanan += `<tr>
+                <td><b>${b}</b></td>
+                <td>${formatIDR(bulananMap[b].transO)} / <span style="color:var(--success)">${formatIDR(bulananMap[b].transP)}</span></td>
+                <td>${formatIDR(bulananMap[b].kaiO)} / <span style="color:var(--success)">${formatIDR(bulananMap[b].kaiP)}</span></td>
+                <td>${formatIDR(bulananMap[b].miekiO)} / <span style="color:var(--success)">${formatIDR(bulananMap[b].miekiP)}</span></td>
+            </tr>`;
+        });
+        tbodyBulanan.innerHTML = htmlBulanan;
     }
 
     function switchChart(tipe, btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        if(tipe === 'harian') { renderGrafikHarian(); } 
-        else { renderGrafikBulanan(); }
+        
+        const summaryBox = document.getElementById("monthlySummarySection");
+        
+        if(tipe === 'harian') { 
+            summaryBox.style.display = "none"; // Sembunyikan tabel akumulasi jika tab harian aktif
+            renderGrafikHarian(); 
+        } 
+        else { 
+            summaryBox.style.display = "block"; // Munculkan tabel akumulasi di bawah grafik bulanan
+            renderGrafikBulanan(); 
+        }
     }
 </script>
 
